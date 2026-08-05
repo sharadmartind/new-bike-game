@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NYC Bike Courier - Speed Rush</title>
+    <link rel="stylesheet" href="./css/styles.css" />
+  </head>
+  <body>
+    <div id="game-container">
+      <canvas id="gameCanvas"></canvas>
+
+      <div class="ui-layer">
+        <div class="hud">
+          <div class="score-box">
+            <div class="label">Score</div>
+            <div class="value" id="score-val">0000</div>
+          </div>
+          <div class="speed-box">
+            <div class="label">Speed</div>
+            <div class="value" id="speed-val">15 MPH</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Start Screen -->
+      <div id="start-card" class="overlay-card">
+        <h1>NYC COURIER</h1>
+        <p>
+          Dodge yellow cabs, MTA buses, delivery vans, and potholes on the
+          streets of Manhattan!
+        </p>
+        <p><strong>Controls:</strong> Arrow Keys / WASD to Steer</p>
+        <button class="btn" id="start-btn">Start Delivery</button>
+      </div>
+
+      <!-- Game Over Screen -->
+      <div id="gameover-card" class="overlay-card hidden">
+        <h1 style="color: #ff3366">WIPEOUT!</h1>
+        <p id="final-score-text">Final Score: 0</p>
+        <button class="btn" id="restart-btn">Try Again</button>
+      </div>
+    </div>
+
+    <!-- Scripts in dependency order -->
+    <script src="./js/config.js"></script>
+    <script src="./js/audio.js"></script>
+    <script src="./js/particles.js"></script>
+    <script src="./js/entities.js"></script>
+    <script src="./js/game.js"></script>
+  </body>
+</html>
