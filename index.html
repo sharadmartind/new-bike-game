@@ -1,48 +1,777 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NYC Bike Courier - Speed Rush</title>
-<link rel="stylesheet" href="./css/styles.css">  
-  </head>
-  <body>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: #111;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #game-container {
+            position: relative;
+            width: 480px;
+            height: 720px;
+            background: #222;
+            box-shadow: 0 0 30px rgba(0, 255, 200, 0.2), 0 0 10px rgba(0,0,0,0.8);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .score-box, .speed-box {
+            background: rgba(0, 0, 0, 0.65);
+            padding: 8px 16px;
+            border-radius: 4px;
+            border-left: 4px solid #00ffcc;
+            backdrop-filter: blur(4px);
+        }
+
+        .label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #aaa;
+        }
+
+        .value {
+            font-size: 22px;
+            font-weight: bold;
+            font-family: monospace;
+            color: #fff;
+        }
+
+        .overlay-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(15, 15, 20, 0.92);
+            border: 2px solid #00ffcc;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            pointer-events: auto;
+            width: 85%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        h1 {
+            font-size: 26px;
+            margin-bottom: 8px;
+            color: #00ffcc;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        p {
+            font-size: 13px;
+            color: #ccc;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .btn {
+            background: #00ffcc;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background: #fff;
+            box-shadow: 0 0 15px #00ffcc;
+            transform: scale(1.05);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
     <div id="game-container">
-      <canvas id="gameCanvas"></canvas>
-
-      <div class="ui-layer">
-        <div class="hud">
-          <div class="score-box">
-            <div class="label">Score</div>
-            <div class="value" id="score-val">0000</div>
-          </div>
-          <div class="speed-box">
-            <div class="label">Speed</div>
-            <div class="value" id="speed-val">15 MPH</div>
-          </div>
+        <canvas id="gameCanvas"></canvas>
+        
+        <div class="ui-layer">
+            <div class="hud">
+                <div class="score-box">
+                    <div class="label">Score</div>
+                    <div class="value" id="score-val">0000</div>
+                </div>
+                <div class="speed-box">
+                    <div class="label">Speed</div>
+                    <div class="value" id="speed-val">15 MPH</div>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Start Screen -->
-      <div id="start-card" class="overlay-card">
-        <h1>NYC COURIER</h1>
-        <p>
-          Dodge yellow cabs, MTA buses, delivery vans, and potholes on the
-          streets of Manhattan!
-        </p>
-        <p><strong>Controls:</strong> Arrow Keys / WASD to Steer</p>
-        <button class="btn" id="start-btn">Start Delivery</button>
-      </div>
+        <!-- Start Screen -->
+        <div id="start-card" class="overlay-card">
+            <h1>NYC COURIER</h1>
+            <p>Dodge yellow cabs, MTA buses, delivery vans, and potholes on the streets of Manhattan!</p>
+            <p><strong>Controls:</strong> Arrow Keys / WASD to Steer</p>
+            <button class="btn" id="start-btn">Start Delivery</button>
+        </div>
 
-      <!-- Game Over Screen -->
-      <div id="gameover-card" class="overlay-card hidden">
-        <h1 style="color: #ff3366">WIPEOUT!</h1>
-        <p id="final-score-text">Final Score: 0</p>
-        <button class="btn" id="restart-btn">Try Again</button>
-      </div>
+        <!-- Game Over Screen -->
+        <div id="gameover-card" class="overlay-card hidden">
+            <h1 style="color: #ff3366;">WIPEOUT!</h1>
+            <p id="final-score-text">Final Score: 0</p>
+            <button class="btn" id="restart-btn">Try Again</button>
+        </div>
     </div>
 
-    <!-- Scripts in dependency order -->
+<script>
+const CONFIG = {
+    width: 480,
+    height: 720,
+    laneCount: 4,
+    baseSpeed: 5,
+    maxSpeed: 18,
+    speedIncRate: 0.002,
+    audio: {
+        masterVolume: 0.3,
+        engineVolume: 0.15,
+        bellVolume: 0.4,
+        crashVolume: 0.6
+    },
+    particles: {
+        dustRate: 2,
+        speedLines: 25,
+        debrisCount: 60
+    }
+};
+
+class SoundController {
+    constructor() {
+        this.ctx = null;
+        this.isInitialized = false;
+        this.masterGain = null;
+        this.engineOsc = null;
+        this.engineFilter = null;
+        this.engineGain = null;
+    }
+
+    init() {
+        if (this.isInitialized) return;
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioCtx();
+
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.setValueAtTime(CONFIG.audio.masterVolume, this.ctx.currentTime);
+        this.masterGain.connect(this.ctx.destination);
+
+        this.engineOsc = this.ctx.createOscillator();
+        this.engineOsc.type = 'sawtooth';
+        
+        this.engineFilter = this.ctx.createBiquadFilter();
+        this.engineFilter.type = 'lowpass';
+        this.engineFilter.frequency.setValueAtTime(120, this.ctx.currentTime);
+
+        this.engineGain = this.ctx.createGain();
+        this.engineGain.gain.setValueAtTime(CONFIG.audio.engineVolume, this.ctx.currentTime);
+
+        this.engineOsc.connect(this.engineFilter);
+        this.engineFilter.connect(this.engineGain);
+        this.engineGain.connect(this.masterGain);
+
+        this.engineOsc.start();
+        this.isInitialized = true;
+    }
+
+    updateEngineSound(currentSpeedRatio) {
+        if (!this.isInitialized) return;
+        const now = this.ctx.currentTime;
+        const targetFreq = 50 + (currentSpeedRatio * 80);
+        const targetCutoff = 100 + (currentSpeedRatio * 250);
+
+        this.engineOsc.frequency.setTargetAtTime(targetFreq, now, 0.1);
+        this.engineFilter.frequency.setTargetAtTime(targetCutoff, now, 0.1);
+    }
+
+    playBellSound() {
+        if (!this.isInitialized) return;
+        const now = this.ctx.currentTime;
+        const osc1 = this.ctx.createOscillator();
+        const osc2 = this.ctx.createOscillator();
+        const bellGain = this.ctx.createGain();
+
+        osc1.type = 'sine';
+        osc2.type = 'sine';
+        osc1.frequency.setValueAtTime(2093, now);
+        osc2.frequency.setValueAtTime(2528, now);
+
+        bellGain.gain.setValueAtTime(CONFIG.audio.bellVolume, now);
+        bellGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+        osc1.connect(bellGain);
+        osc2.connect(bellGain);
+        bellGain.connect(this.masterGain);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 0.4);
+        osc2.stop(now + 0.4);
+    }
+
+    playCrashSound() {
+        if (!this.isInitialized) return;
+        const now = this.ctx.currentTime;
+        const bufferSize = this.ctx.sampleRate * 0.5;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(800, now);
+        filter.frequency.exponentialRampToValueAtTime(30, now + 0.4);
+
+        const crashGain = this.ctx.createGain();
+        crashGain.gain.setValueAtTime(CONFIG.audio.crashVolume, now);
+        crashGain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+
+        noise.connect(filter);
+        filter.connect(crashGain);
+        crashGain.connect(this.masterGain);
+
+        noise.start(now);
+    }
+}
+
+class Particle {
+    constructor(x, y, vx, vy, color, size, life, type = 'dust') {
+        this.x = x;
+        this.y = y;
+        this.vx = vx;
+        this.vy = vy;
+        this.color = color;
+        this.size = size;
+        this.life = life;
+        this.maxLife = life;
+        this.type = type;
+        this.markedForDeletion = false;
+    }
+
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life--;
+
+        if (this.type === 'debris') {
+            this.vx *= 0.95;
+            this.vy *= 0.95;
+            this.size *= 0.97;
+        }
+
+        if (this.life <= 0) {
+            this.markedForDeletion = true;
+        }
+    }
+
+    draw(ctx) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, this.life / this.maxLife);
+
+        if (this.type === 'speedline') {
+            ctx.strokeStyle = this.color;
+            ctx.lineWidth = this.size;
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y);
+            ctx.lineTo(this.x, this.y + this.vy * 3);
+            ctx.stroke();
+        } else {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, Math.max(0.1, this.size), 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+}
+
+class ParticleSystem {
+    constructor() {
+        this.particles = [];
+    }
+
+    update() {
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            this.particles[i].update();
+            if (this.particles[i].markedForDeletion) {
+                this.particles.splice(i, 1);
+            }
+        }
+    }
+
+    draw(ctx) {
+        this.particles.forEach(p => p.draw(ctx));
+    }
+
+    emitDust(x, y, speed) {
+        for (let i = 0; i < CONFIG.particles.dustRate; i++) {
+            const vx = (Math.random() - 0.5) * 1.5;
+            const vy = speed * 0.3 + Math.random() * 2;
+            const size = Math.random() * 3 + 1;
+            const life = Math.random() * 20 + 10;
+            const color = Math.random() > 0.5 ? '#999999' : '#cccccc';
+            this.particles.push(new Particle(x, y, vx, vy, color, size, life, 'dust'));
+        }
+    }
+
+    emitSpeedLine(canvasWidth, canvasHeight, speedRatio) {
+        if (Math.random() > speedRatio) return;
+        const isLeft = Math.random() > 0.5;
+        const margin = 40;
+        const x = isLeft ? Math.random() * margin : canvasWidth - (Math.random() * margin);
+        const y = -20;
+        const vy = 15 + speedRatio * 25;
+        const size = Math.random() * 1.5 + 0.5;
+        const life = 25;
+        this.particles.push(new Particle(x, y, 0, vy, 'rgba(255, 255, 255, 0.6)', size, life, 'speedline'));
+    }
+
+    explode(x, y) {
+        const colors = ['#ff3366', '#ffcc00', '#00ffcc', '#ffffff', '#333333'];
+        for (let i = 0; i < CONFIG.particles.debrisCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const force = Math.random() * 12 + 2;
+            const vx = Math.cos(angle) * force;
+            const vy = Math.sin(angle) * force;
+            const size = Math.random() * 6 + 3;
+            const life = Math.random() * 40 + 20;
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            this.particles.push(new Particle(x, y, vx, vy, color, size, life, 'debris'));
+        }
+    }
+
+    clear() {
+        this.particles = [];
+    }
+}
+
+class Player {
+    constructor(canvasWidth, canvasHeight) {
+        this.canvasWidth = canvasWidth;
+        this.canvasHeight = canvasHeight;
+        this.width = 24;
+        this.height = 48;
+        this.x = canvasWidth / 2 - this.width / 2;
+        this.y = canvasHeight - 120;
+        this.speed = 7;
+        this.vx = 0;
+        this.vy = 0;
+    }
+
+    update(keys) {
+        this.vx = 0;
+        this.vy = 0;
+
+        if (keys['ArrowLeft'] || keys['a'] || keys['A']) this.vx = -this.speed;
+        if (keys['ArrowRight'] || keys['d'] || keys['D']) this.vx = this.speed;
+        if (keys['ArrowUp'] || keys['w'] || keys['W']) this.vy = -this.speed * 0.5;
+        if (keys['ArrowDown'] || keys['s'] || keys['S']) this.vy = this.speed * 0.5;
+
+        this.x += this.vx;
+        this.y += this.vy;
+
+        const minX = 40;
+        const maxX = this.canvasWidth - 40 - this.width;
+        const minY = 100;
+        const maxY = this.canvasHeight - 60;
+
+        if (this.x < minX) this.x = minX;
+        if (this.x > maxX) this.x = maxX;
+        if (this.y < minY) this.y = minY;
+        if (this.y > maxY) this.y = maxY;
+    }
+
+    draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.beginPath();
+        ctx.ellipse(2, 4, 10, 22, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#111';
+        ctx.fillRect(-2, -22, 4, 10);
+        ctx.fillRect(-2, 12, 4, 10);
+
+        ctx.strokeStyle = '#00ffcc';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(0, -15);
+        ctx.lineTo(0, 15);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#aaa';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(-10, -12);
+        ctx.lineTo(10, -12);
+        ctx.stroke();
+
+        ctx.fillStyle = '#ff3366';
+        ctx.fillRect(-8, -2, 16, 12);
+
+        ctx.fillStyle = '#00ffcc';
+        ctx.beginPath();
+        ctx.arc(0, -5, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    }
+}
+
+class Obstacle {
+    constructor(canvasWidth, gameSpeed) {
+        this.types = ['taxi', 'bus', 'van', 'cone', 'pothole'];
+        this.type = this.types[Math.floor(Math.random() * this.types.length)];
+        this.canvasWidth = canvasWidth;
+        this.passed = false;
+
+        switch (this.type) {
+            case 'bus':
+                this.width = 44;
+                this.height = 110;
+                this.color = '#3366cc';
+                break;
+            case 'taxi':
+                this.width = 36;
+                this.height = 68;
+                this.color = '#ffcc00';
+                break;
+            case 'van':
+                this.width = 38;
+                this.height = 75;
+                this.color = '#eeeeee';
+                break;
+            case 'cone':
+                this.width = 18;
+                this.height = 18;
+                this.color = '#ff6600';
+                break;
+            case 'pothole':
+                this.width = 30;
+                this.height = 22;
+                this.color = '#111111';
+                break;
+        }
+
+        const laneWidth = (canvasWidth - 80) / CONFIG.laneCount;
+        const lane = Math.floor(Math.random() * CONFIG.laneCount);
+        this.x = 40 + lane * laneWidth + (laneWidth / 2 - this.width / 2);
+        this.y = -this.height - 20;
+
+        this.speedOffset = (this.type === 'pothole' || this.type === 'cone') ? 0 : Math.random() * 1.5;
+    }
+
+    update(gameSpeed) {
+        this.y += (gameSpeed - this.speedOffset);
+    }
+
+    draw(ctx) {
+        ctx.save();
+
+        if (this.type === 'pothole') {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.ellipse(this.x + this.width/2, this.y + this.height/2, this.width/2, this.height/2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        } else if (this.type === 'cone') {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x + this.width/2, this.y + this.height/2, this.width/2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(this.x + this.width/2, this.y + this.height/2, this.width/4, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            ctx.fillStyle = 'rgba(0,0,0,0.25)';
+            ctx.fillRect(this.x + 3, this.y + 3, this.width, this.height);
+
+            ctx.fillStyle = this.color;
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+
+            ctx.fillStyle = '#222';
+            ctx.fillRect(this.x + 4, this.y + 12, this.width - 8, 12);
+            ctx.fillRect(this.x + 4, this.y + this.height - 15, this.width - 8, 8);
+
+            if (this.type === 'taxi') {
+                ctx.fillStyle = '#000';
+                ctx.fillRect(this.x + this.width/2 - 6, this.y + this.height/2 - 4, 12, 8);
+                ctx.fillStyle = '#fff';
+                ctx.font = '8px sans-serif';
+                ctx.fillText('NYC', this.x + this.width/2 - 7, this.y + this.height/2 + 3);
+            }
+            
+            if (this.type === 'bus') {
+                ctx.fillStyle = '#ffcc00';
+                ctx.fillRect(this.x, this.y + 2, this.width, 4);
+            }
+        }
+
+        ctx.restore();
+    }
+}
+
+class Game {
+    constructor() {
+        this.canvas = document.getElementById('gameCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        
+        this.canvas.width = CONFIG.width;
+        this.canvas.height = CONFIG.height;
+
+        this.sound = new SoundController();
+        this.particles = new ParticleSystem();
+        
+        this.isRunning = false;
+        this.score = 0;
+        this.speed = CONFIG.baseSpeed;
+        this.roadOffset = 0;
+        this.screenShake = 0;
+        
+        this.player = null;
+        this.obstacles = [];
+        this.spawnTimer = 0;
+        this.keys = {};
+
+        this.scoreEl = document.getElementById('score-val');
+        this.speedEl = document.getElementById('speed-val');
+        this.startCard = document.getElementById('start-card');
+        this.gameOverCard = document.getElementById('gameover-card');
+        this.finalScoreText = document.getElementById('final-score-text');
+
+        this.bindEvents();
+    }
+
+    bindEvents() {
+        window.addEventListener('keydown', (e) => {
+            this.keys[e.key] = true;
+            if (!this.sound.isInitialized) this.sound.init();
+        });
+
+        window.addEventListener('keyup', (e) => {
+            this.keys[e.key] = false;
+        });
+
+        document.getElementById('start-btn').addEventListener('click', () => {
+            this.sound.init();
+            this.start();
+        });
+
+        document.getElementById('restart-btn').addEventListener('click', () => {
+            this.start();
+        });
+    }
+
+    start() {
+        this.player = new Player(this.canvas.width, this.canvas.height);
+        this.obstacles = [];
+        this.particles.clear();
+        
+        this.score = 0;
+        this.speed = CONFIG.baseSpeed;
+        this.spawnTimer = 0;
+        this.screenShake = 0;
+        this.isRunning = true;
+
+        this.startCard.classList.add('hidden');
+        this.gameOverCard.classList.add('hidden');
+
+        requestAnimationFrame((timestamp) => this.loop(timestamp));
+    }
+
+    gameOver() {
+        this.isRunning = false;
+        this.sound.playCrashSound();
+        
+        this.particles.explode(this.player.x + this.player.width / 2, this.player.y + this.player.height / 2);
+        this.screenShake = 20;
+
+        this.draw();
+
+        setTimeout(() => {
+            this.finalScoreText.innerText = `Final Score: ${Math.floor(this.score)}`;
+            this.gameOverCard.classList.remove('hidden');
+        }, 800);
+    }
+
+    spawnObstacles() {
+        this.spawnTimer++;
+        const spawnInterval = Math.max(30, Math.floor(1000 / (this.speed * 10)));
+        
+        if (this.spawnTimer > spawnInterval) {
+            this.obstacles.push(new Obstacle(this.canvas.width, this.speed));
+            this.spawnTimer = 0;
+        }
+    }
+
+    update() {
+        if (this.speed < CONFIG.maxSpeed) {
+            this.speed += CONFIG.speedIncRate;
+        }
+
+        const speedRatio = (this.speed - CONFIG.baseSpeed) / (CONFIG.maxSpeed - CONFIG.baseSpeed);
+        
+        this.sound.updateEngineSound(speedRatio);
+
+        this.score += this.speed * 0.1;
+        this.scoreEl.innerText = Math.floor(this.score).toString().padStart(4, '0');
+        this.speedEl.innerText = `${Math.floor(this.speed * 3)} MPH`;
+
+        this.roadOffset = (this.roadOffset + this.speed) % 40;
+
+        this.player.update(this.keys);
+        this.particles.emitDust(this.player.x + this.player.width / 2, this.player.y + this.player.height - 5, this.speed);
+        this.particles.emitSpeedLine(this.canvas.width, this.canvas.height, speedRatio);
+        this.particles.update();
+
+        this.spawnObstacles();
+
+        for (let i = this.obstacles.length - 1; i >= 0; i--) {
+            const obs = this.obstacles[i];
+            obs.update(this.speed);
+
+            if (!obs.passed && obs.y > this.player.y + this.player.height) {
+                obs.passed = true;
+                this.sound.playBellSound();
+            }
+
+            if (
+                this.player.x < obs.x + obs.width &&
+                this.player.x + this.player.width > obs.x &&
+                this.player.y < obs.y + obs.height &&
+                this.player.y + this.player.height > obs.y
+            ) {
+                this.gameOver();
+                return;
+            }
+
+            if (obs.y > this.canvas.height + 150) {
+                this.obstacles.splice(i, 1);
+            }
+        }
+
+        if (this.screenShake > 0) this.screenShake *= 0.9;
+    }
+
+    draw() {
+        this.ctx.save();
+
+        if (this.screenShake > 0.5) {
+            const shakeX = (Math.random() - 0.5) * this.screenShake;
+            const shakeY = (Math.random() - 0.5) * this.screenShake;
+            this.ctx.translate(shakeX, shakeY);
+        }
+
+        this.ctx.fillStyle = '#222225';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        this.ctx.fillStyle = '#444448';
+        this.ctx.fillRect(0, 0, 40, this.canvas.height);
+        this.ctx.fillRect(this.canvas.width - 40, 0, 40, this.canvas.height);
+
+        this.ctx.fillStyle = 'rgba(0, 180, 120, 0.25)';
+        this.ctx.fillRect(40, 0, 80, this.canvas.height);
+
+        this.ctx.strokeStyle = '#ffcc00';
+        this.ctx.lineWidth = 4;
+        this.ctx.setLineDash([20, 20]);
+        this.ctx.lineDashOffset = -this.roadOffset;
+
+        const laneWidth = (this.canvas.width - 80) / CONFIG.laneCount;
+        for (let i = 1; i < CONFIG.laneCount; i++) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(40 + i * laneWidth, -40);
+            this.ctx.lineTo(40 + i * laneWidth, this.canvas.height + 40);
+            this.ctx.stroke();
+        }
+        this.ctx.setLineDash([]);
+
+        this.obstacles.forEach(obs => obs.draw(this.ctx));
+        if (this.isRunning) this.player.draw(this.ctx);
+        this.particles.draw(this.ctx);
+
+        this.ctx.restore();
+    }
+
+    loop(timestamp) {
+        if (!this.isRunning) return;
+
+        this.update();
+        this.draw();
+
+        requestAnimationFrame((ts) => this.loop(ts));
+    }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    new Game();
+});
+</script>
+</body>
+</html>y order -->
   <script src="./js/config.js"></script>
     <script src="./js/audio.js"></script>
     <script src="./js/particles.js"></script>
