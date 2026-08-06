@@ -606,25 +606,30 @@ class Game {
     }
 
     bindEvents() {
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+
         window.addEventListener('keydown', (e) => {
             this.keys[e.key] = true;
-            if (!this.sound.isInitialized) this.sound.init();
         });
 
         window.addEventListener('keyup', (e) => {
             this.keys[e.key] = false;
         });
 
-        document.getElementById('start-btn').addEventListener('click', () => {
-            this.sound.init();
+        startBtn.addEventListener('click', () => {
+            try {
+                this.sound.init();
+            } catch(err) {
+                console.log("Audio init deferred:", err);
+            }
             this.start();
         });
 
-        document.getElementById('restart-btn').addEventListener('click', () => {
+        restartBtn.addEventListener('click', () => {
             this.start();
         });
     }
-
     start() {
         this.player = new Player(this.canvas.width, this.canvas.height);
         this.obstacles = [];
